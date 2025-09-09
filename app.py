@@ -22,7 +22,7 @@ app = Flask(__name__)
 import threading
 
 class DoublePendulum:
-    def __init__(self, origin_x=300, origin_y=100, L1=120, L2=120, m1=10, m2=10, g=9.81):
+    def __init__(self, origin_x: float=300, origin_y: float=100, L1: float=120, L2: float=120, m1: float=10, m2: float=10, g: float=9.81, theta1: float=math.pi/2, theta2: float=math.pi/2, omega1: float=0.0, omega2: float=0.0):
         self.origin_x = origin_x
         self.origin_y = origin_y
         self.L1 = L1
@@ -31,16 +31,16 @@ class DoublePendulum:
         self.m2 = m2
         self.g = g
         # Initial conditions
-        self.theta1 = math.pi / 2
-        self.theta2 = math.pi / 2
-        self.omega1 = 0.0
-        self.omega2 = 0.0
+        self.theta1 = theta1
+        self.theta2 = theta2
+        self.omega1 = omega1
+        self.omega2 = omega2   
         self.x1 = self.origin_x + self.L1 * math.sin(self.theta1)
         self.y1 = self.origin_y + self.L1 * math.cos(self.theta1)
         self.x2 = self.x1 + self.L2 * math.sin(self.theta2)
         self.y2 = self.y1 + self.L2 * math.cos(self.theta2)
 
-    def step(self, dt=0.06):
+    def step(self, dt: float=0.06):
         delta = self.theta2 - self.theta1
         denom1 = (self.m1 + self.m2) * self.L1 - self.m2 * self.L1 * math.cos(delta) ** 2
         denom2 = (self.L2 / self.L1) * denom1
@@ -81,43 +81,6 @@ def run_simulation():
 
 # Start simulation in background thread
 threading.Thread(target=run_simulation, daemon=True).start()
-
-class pendulum_vertici: # Class representing each ball of the pendulum
-
-    def __init__(self, x, y):
-        self._x = x
-        self._y = y
-        
-        self._x_velocity = 0
-        self._y_velocity = 0
-        
-        self._x_acceleration = 0
-        self._y_acceleration = 0
-
-        self._x_tension = 0
-        self._y_tension = 0
-
-        self._tension_acute_vertical_angle = 0
-
-
-    def get_x(self):
-        return self._x
-
-    def get_y(self):
-        return self._y
-    
-    def get_x_velocity(self):
-        return self._x_velocity
-    
-    def get_y_velocity(self):
-        return self._y_velocity
-    
-    def get_velocity(self):
-        return (self._x_velocity**2 + self._y_velocity**2)**0.5
-    
-    def get_velocity_angle(self):
-        return math.atan2(self._y_velocity, self._x_velocity)
-
 
 @app.route('/')
 def index():
