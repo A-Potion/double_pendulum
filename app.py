@@ -10,69 +10,68 @@
 
 import math
 from flask import Flask, render_template, jsonify
-from bokeh.plotting import figure, curdoc
-from bokeh.models import ColumnDataSource
-from bokeh.layouts import layout
-from bokeh.server.server import Server
-from bokeh.io import show
+
 
 app = Flask(__name__)
 
 
 import threading
 
-class DoublePendulum:
-    def __init__(self, origin_x: float=300, origin_y: float=100, L1: float=120, L2: float=120, m1: float=10, m2: float=10, g: float=9.81, theta1: float=math.pi/2, theta2: float=math.pi/2, omega1: float=0.0, omega2: float=0.0):
+class Double_Pendulum:
+    def __init__(self, origin_x: float=300, origin_y: float=100, length_rod_1: float=120,
+                  length_rod_2: float=120, mass_bob_1: float=10, mass_bob_2: float=10,
+                    g: float=9.81, theta_1: float=math.pi/2, theta_2: float=math.pi/2,
+                      omega_1: float=0.0, omega_2: float=0.0):
         self.origin_x = origin_x
         self.origin_y = origin_y
-        self.L1 = L1
-        self.L2 = L2
-        self.m1 = m1
-        self.m2 = m2
-        self.g = g
-        # Initial conditions
-        self.theta1 = theta1
-        self.theta2 = theta2
-        self.omega1 = omega1
-        self.omega2 = omega2   
-        self.x1 = self.origin_x + self.L1 * math.sin(self.theta1)
-        self.y1 = self.origin_y + self.L1 * math.cos(self.theta1)
-        self.x2 = self.x1 + self.L2 * math.sin(self.theta2)
-        self.y2 = self.y1 + self.L2 * math.cos(self.theta2)
+        self.length_rod_1 = length_rod_1
+        self.length_rod_2 = length_rod_2
+        self.mass_bob_1 = mass_bob_1
+        self.mass_bob_2 = mass_bob_2
+        self.g = g # Gravitational Acceleration
+        # inital conditions
+        self.theta_1 = theta_1 # Theta refers to the angle of the respective bob from vertical
+        self.theta_2 = theta_2
+        self.omega_1 = omega_1 # Omega refers to the angular velocity of the respective bob
+        self.omega_2 = omega_2   
+        self.x_1 = self.origin_x + self.length_rod_1 * math.sin(self.theta_1)
+        self.y_1 = self.origin_y + self.length_rod_1 * math.cos(self.theta_1)
+        self.x_2 = self.x_1 + self.length_rod_2 * math.sin(self.theta_2)
+        self.y_2 = self.y_1 + self.length_rod_2 * math.cos(self.theta_2)
 
     def step(self, dt: float=0.06):
-        delta = self.theta2 - self.theta1
-        denom1 = (self.m1 + self.m2) * self.L1 - self.m2 * self.L1 * math.cos(delta) ** 2
-        denom2 = (self.L2 / self.L1) * denom1
+        delta = self.theta_2 - self.theta_1 # Difference in angles
+        denominator_1 = (self.mass_bob_1 + self.mass_bob_2) * self.length_rod_1 - self.mass_bob_2 * self.length_rod_1 * math.cos(delta) ** 2
+        denominator_2 = (self.length_rod_2 / self.length_rod_1) * denominator_1
 
-        a1 = (self.m2 * self.L1 * self.omega1 ** 2 * math.sin(delta) * math.cos(delta) +
-              self.m2 * self.g * math.sin(self.theta2) * math.cos(delta) +
-              self.m2 * self.L2 * self.omega2 ** 2 * math.sin(delta) -
-              (self.m1 + self.m2) * self.g * math.sin(self.theta1)) / denom1
+        acceleration_1 = (self.mass_bob_2 * self.length_rod_1 * self.omega_1 ** 2 * math.sin(delta) * math.cos(delta) +
+              self.mass_bob_2 * self.g * math.sin(self.theta_2) * math.cos(delta) +
+              self.mass_bob_2 * self.length_rod_2 * self.omega_2 ** 2 * math.sin(delta) -
+              (self.mass_bob_1 + self.mass_bob_2) * self.g * math.sin(self.theta_1)) / denominator_1
 
-        a2 = (-self.m2 * self.L2 * self.omega2 ** 2 * math.sin(delta) * math.cos(delta) +
-              (self.m1 + self.m2) * self.g * math.sin(self.theta1) * math.cos(delta) -
-              (self.m1 + self.m2) * self.L1 * self.omega1 ** 2 * math.sin(delta) -
-              (self.m1 + self.m2) * self.g * math.sin(self.theta2)) / denom2
+        acceleration_2 = (-self.mass_bob_2 * self.length_rod_2 * self.omega_2 ** 2 * math.sin(delta) * math.cos(delta) +
+              (self.mass_bob_1 + self.mass_bob_2) * self.g * math.sin(self.theta_1) * math.cos(delta) -
+              (self.mass_bob_1 + self.mass_bob_2) * self.length_rod_1 * self.omega_1 ** 2 * math.sin(delta) -
+              (self.mass_bob_1 + self.mass_bob_2) * self.g * math.sin(self.theta_2)) / denominator_2
 
-        self.omega1 += a1 * dt
-        self.omega2 += a2 * dt
-        self.theta1 += self.omega1 * dt
-        self.theta2 += self.omega2 * dt
+        self.omega_1 += acceleration_1 * dt
+        self.omega_2 += acceleration_2 * dt
+        self.theta_1 += self.omega_1 * dt
+        self.theta_2 += self.omega_2 * dt
 
-        self.x1 = self.origin_x + self.L1 * math.sin(self.theta1)
-        self.y1 = self.origin_y + self.L1 * math.cos(self.theta1)
-        self.x2 = self.x1 + self.L2 * math.sin(self.theta2)
-        self.y2 = self.y1 + self.L2 * math.cos(self.theta2)
+        self.x_1 = self.origin_x + self.length_rod_1 * math.sin(self.theta_1)
+        self.y_1 = self.origin_y + self.length_rod_1 * math.cos(self.theta_1)
+        self.x_2 = self.x_1 + self.length_rod_2 * math.sin(self.theta_2)
+        self.y_2 = self.y_1 + self.length_rod_2 * math.cos(self.theta_2)
 
     def get_coords(self):
         return [
-            {'x': self.x1, 'y': self.y1},
-            {'x': self.x2, 'y': self.y2}
+            {'x': self.x_1, 'y': self.y_1},
+            {'x': self.x_2, 'y': self.y_2}
         ]
 
 # Create simulation instance
-double_pendulum = DoublePendulum()
+double_pendulum = Double_Pendulum()
 
 def run_simulation():
     while True:
@@ -82,11 +81,13 @@ def run_simulation():
 # Start simulation in background thread
 threading.Thread(target=run_simulation, daemon=True).start()
 
+
+# route to the simulation page
 @app.route('/')
 def index():
     return render_template('index.html', origin_x=double_pendulum.origin_x, origin_y=double_pendulum.origin_y)
 
-# API route to get pendulum coordinates
+# route to get pendulum coords
 @app.route('/coords')
 def coords():
     return jsonify(double_pendulum.get_coords())
