@@ -8,14 +8,10 @@
 
 #You have two weeks for this. You must submit your progress by the end of the first week, and your final project by the end of the second week.
 
-import math
+import math, threading
 from flask import Flask, render_template, jsonify
 
-
 app = Flask(__name__)
-
-
-import threading
 
 class Double_Pendulum:
     def __init__(self, origin_x: float=300, origin_y: float=100, length_rod_1: float=120,
@@ -80,7 +76,6 @@ def run_simulation():
 
 # Start simulation in background thread
 threading.Thread(target=run_simulation, daemon=True).start()
-
 
 # route to the simulation page
 @app.route('/')
