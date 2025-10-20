@@ -1,0 +1,10 @@
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+vevn
+.git
+.gitignore
+*.md
+vercel.json
