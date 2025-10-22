@@ -10,4 +10,4 @@ COPY . .
 
 EXPOSE 8000
 
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "1", "--threads", "2", "app:app"]
+CMD ["sh", "-c", "timeout 3600 gunicorn --bind 0.0.0.0:8000 --workers 1 --threads 2 app:app"]
