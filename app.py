@@ -72,7 +72,7 @@ double_pendulum = Double_Pendulum()
 def run_simulation():
     while True:
         double_pendulum.step()
-        threading.Event().wait(0.02)
+        threading.Event().wait(0.03)
 
 # Start simulation in background thread
 threading.Thread(target=run_simulation, daemon=True).start()
